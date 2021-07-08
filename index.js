@@ -25,7 +25,9 @@ bot.on('messageCreate', async (msg) => {
 
 bot.on('messageReactionAdd', async (msg, emoji, animated, id, name, reactor) => {
 	
-  if (!isOwnMessage(msg))// || name != "AngrySteph") 
+  let message = bot.getMessage(msg.channel.id, msg.id)
+	
+  if (!isOwnMessage(message))// || name != "AngrySteph") 
 	return;
   await msg.channel.createMessage(name);
 	
