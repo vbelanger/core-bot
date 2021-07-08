@@ -20,16 +20,25 @@ const textContainsTrigger = (msg) => msg.content.toLowerCase().match(data.trigge
 const getRandomMessage = () => data.messages[Math.floor(Math.random() * data.messages.length)];
 
 bot.on('messageCreate', async (msg) => {
-  if (shouldReply(msg)) await msg.channel.createMessage(getRandomMessage());
+  try {
+    if (shouldReply(msg))
+      await msg.channel.createMessage(getRandomMessage());
+  } catch (e) {
+    console.error(e);
+  }
 });
 
-bot.on('messageReactionAdd', async (msg, emoji, animated, id, name, reactor) => {
-	
-  if (!isOwnMessage(msg))// || name != "AngrySteph") 
-	return;
-  await msg.channel.createMessage(name);
-	
-  await msg.channel.createMessage("Tu n'aimes pas mon message " + reactor.nick + "?");
+bot.on('messageReactionAdd', async (msg, emoji, reactor) => {
+  try {
+    const message = await bot.getMessage(msg.channel.id, msg.id);
+    if (!isOwnMessage(message) || emoji.name != 'AngrySteph')
+      return;
+
+    const username = reactor.nick || reactor.user.username;
+    await msg.channel.createMessage(`Tu n'aimes pas mon message ${username}?`);
+  } catch (e) {
+    console.error(e);
+  }
 });
 
 bot.connect();
