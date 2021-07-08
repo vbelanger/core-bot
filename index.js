@@ -24,8 +24,10 @@ bot.on('messageCreate', async (msg) => {
 });
 
 bot.on('messageReactionAdd', async (msg, emoji, animated, id, name, reactor) => {
-  if (!isOwnMessage(msg) || name != "AngrySteph") 
+	
+  if (!isOwnMessage(msg))// || name != "AngrySteph") 
 	return;
+  await msg.channel.createMessage(name);
 	
   await msg.channel.createMessage("Tu n'aimes pas mon message " + reactor.nick + "?");
 });
