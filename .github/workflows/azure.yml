@@ -1,4 +1,7 @@
-on: push
+on:
+  push:
+    branches:
+      - master
 
 env:
   AZURE_WEBAPP_NAME: core-bot
