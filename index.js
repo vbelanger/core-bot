@@ -25,7 +25,7 @@ bot.on('messageCreate', async (msg) => {
     if (shouldReply(msg))
       await msg.channel.createMessage(getRandomMessage());
     if (shouldReact(msg))
-      await bot.addMessageReaction(msg.channel.id, msg.id, ❤️);
+      await bot.addMessageReaction(msg.channel.id, msg.id, '❤️');
   } catch (e) {
     console.error(e);
   }
