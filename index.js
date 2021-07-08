@@ -1,4 +1,12 @@
 const eris = require('eris');
+const app = require('express')();
+
+const port = process.env.PORT || 3000;
+app.use(function(req, res){
+  res.send();
+});
+
+app.listen(port, () => {})
 
 const bot = new eris.Client(process.env.BOT_TOKEN);
 
@@ -34,7 +42,8 @@ const messages = [
   "Merci pour les infos et le formulaire! :heart: Aussi merci d'utiliser le mot distanciation physique et non distanciation sociale :heart:",
   "J'ai un mac mais c'est + ma femme qui s'en sert... sorry moi non plus je peux pas t'aider",
   "Merci pour ces 4 ans de confiance (souviens-toi, au début tu ignorais le contexte totalement). Cela veut donc dire que dans les premiers embauchés, je serai le seul qui reste. Je garde le fort!",
-  "J'ai finalement manqué tout ça... c'était la semaine de la gastro à la maison..j'ai manqué quoi? Qqn peut faire un recap?"
+  "J'ai finalement manqué tout ça... c'était la semaine de la gastro à la maison..j'ai manqué quoi? Qqn peut faire un recap?",
+  "Bon weekend Nexus. Je t'aime :heart: Ici jardinage et piscine et....relaxer"
 ];
 
 function getRandomMessage() {
