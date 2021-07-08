@@ -33,7 +33,7 @@ bot.on('messageCreate', async (msg) => {
 
 bot.on('messageReactionAdd', async (msg, emoji, reactor) => {
   try {
-    const message = await bot.getMessage(msg.channel.id, msg.id);
+    const message = await msg.channel.getMessage(msg.id);
     if (!isOwnMessage(message) || emoji.name != 'AngrySteph')
       return;
 
