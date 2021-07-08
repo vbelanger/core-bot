@@ -1,5 +1,5 @@
 module.exports = {
-  trigger: /enfant|femme|core|steph|stéph|docker|sre|raymont|garderie|gsoft|knox|employé #1|nexus|dine|svelte|blazor|charles/,
+  trigger: /enfant|femme|core|steph|stéph|docker|sre|raymont|garderie|gsoft|knox|employé #1|nexus|dine|svelte|blazor|charles|ff14|ff 14/,
   messages: [
     "Sorry gang! Je peux pas aujourd'hui, je m'occupe des enfants! Amusez-vous bien!!! :heart:",
     'Je ne peux pas ici, je dine avec ma femme',

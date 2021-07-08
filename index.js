@@ -11,7 +11,7 @@ app.listen(port, () => {});
 
 const bot = new eris.Client(process.env.BOT_TOKEN);
 
-const shouldReply = (msg) => !isOwnMessage(msg) && isInCoreChannel(msg) && (isImagePost(msg) || textContainsTrigger(msg) || wasMentioned(msg));
+const shouldReply = (msg) => !isOwnMessage(msg) && (wasMentioned(msg) || (isInCoreChannel(msg) && (isImagePost(msg) || textContainsTrigger(msg))));
 const isOwnMessage = (msg) => msg.author.id === bot.user.id;
 const wasMentioned = (msg) => msg.mentions.find((user) => user.id === bot.user.id);
 const isInCoreChannel = (msg) => msg.channel.name === 'core-player-quotes';
