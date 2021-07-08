@@ -13,7 +13,7 @@ const bot = new eris.Client(process.env.BOT_TOKEN);
 const shouldReply = (msg) => !isOwnMessage(msg) && (isImageInCoreChannel(msg) || textContainsTrigger(msg));
 const isOwnMessage = (msg) => msg.author.id === bot.user.id;
 const isImageInCoreChannel = (msg) => msg.channel.name === 'core-player-quotes' && msg.attachments.length > 0;
-const textContainsTrigger = (msg) => msg.content.match(/enfant|femme|core|steph|stéph|docker|sre|raymont|garderie|gsoft|knox|employé #1/);
+const textContainsTrigger = (msg) => msg.content.toLowerCase().match(/enfant|femme|core|steph|stéph|docker|sre|raymont|garderie|gsoft|knox|employé #1|nexus|dine/);
 
 const messages = [
   "Sorry gang! Je peux pas aujourd'hui, je m'occupe des enfants! Amusez-vous bien!!! :heart:",
