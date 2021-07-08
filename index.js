@@ -12,6 +12,7 @@ app.listen(port, () => {});
 const bot = new eris.Client(process.env.BOT_TOKEN);
 
 const shouldReply = (msg) => !isOwnMessage(msg) && (wasMentioned(msg) || (isInCoreChannel(msg) && (isImagePost(msg) || textContainsTrigger(msg))));
+const shouldReact = (msg) => !isOwnMessage(msg) && (wasMentioned(msg) || textContainsTrigger(msg));
 const isOwnMessage = (msg) => msg.author.id === bot.user.id;
 const wasMentioned = (msg) => msg.mentions.find((user) => user.id === bot.user.id);
 const isInCoreChannel = (msg) => msg.channel.name === 'core-player-quotes';
@@ -23,6 +24,8 @@ bot.on('messageCreate', async (msg) => {
   try {
     if (shouldReply(msg))
       await msg.channel.createMessage(getRandomMessage());
+    if (shouldReact(msg))
+      await bot.addMessageReaction(msg.channel.id, msg.id, ❤️);
   } catch (e) {
     console.error(e);
   }
