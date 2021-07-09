@@ -14,14 +14,16 @@ app.listen(port, () => {});
 const bot = new eris.CommandClient(process.env.BOT_TOKEN, {}, { prefix: '!' });
 commands.register(bot, dataSource);
 
+dataSource.createDatabase().then(() => {});
+
 const shouldReply = (msg, data) => !isOwnMessage(msg) && (wasMentioned(msg) || (isInCoreChannel(msg) && (isImagePost(msg) || textContainsTrigger(msg, data))));
 const shouldReact = (msg, data) => !isOwnMessage(msg) && (wasMentioned(msg) || textContainsTrigger(msg, data));
 const isOwnMessage = (msg) => msg.author.id === bot.user.id;
 const wasMentioned = (msg) => msg.mentions.find((user) => user.id === bot.user.id);
 const isInCoreChannel = (msg) => msg.channel.name === 'core-player-quotes';
 const isImagePost = (msg) => msg.attachments.length > 0;
-const textContainsTrigger = (msg, data) => msg.content.toLowerCase().match(new RegExp(data.triggers.map((t) => escapeRegex(t.word)).join('|')));
-const getRandomMessage = (data) => data.quotes[Math.floor(Math.random() * data.quotes.length)].message;
+const textContainsTrigger = (msg, data) => data.triggers.length > 0 ? msg.content.toLowerCase().match(new RegExp(data.triggers.map((t) => escapeRegex(t.word)).join('|'))) : false;
+const getRandomMessage = (data) => data.quotes.length > 0 ? data.quotes[Math.floor(Math.random() * data.quotes.length)].message : null;
 const escapeRegex = (text) => text.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
 
 const getData = async () => {
@@ -34,7 +36,11 @@ bot.on('messageCreate', async (msg) => {
   try {
     const data = await getData();
 
-    if (shouldReply(msg, data)) await msg.channel.createMessage(getRandomMessage(data));
+    if (shouldReply(msg, data)) {
+      const message = getRandomMessage(data);
+      if (message)
+        await msg.channel.createMessage(message);
+    }
     if (shouldReact(msg, data)) await bot.addMessageReaction(msg.channel.id, msg.id, '❤️');
   } catch (e) {
     console.error(e);

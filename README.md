@@ -23,7 +23,7 @@ The corest of discord bots
 
 ### Database
 
-The bot uses Cosmos DB to manage its trigger words and messages. It assumes that a database with id `corebot` exists and has two containers, `quotes` and `triggers`. You'll need to set up the database yourself by creating these two containers.
+The bot uses Cosmos DB to manage its trigger words and messages. On startup, it creates a `corebot` database (if not created already) with two containers, `quotes` and `triggers`.
 
 ### Environment
 
@@ -31,6 +31,7 @@ To debug the bot locally, you must set these environment variables:
 - `BOT_TOKEN` (you can grab it from the Discord developer portal, in the Bot section of your application)
 - `COSMOS_ENDPOINT`
 - `COSMOS_KEY`
+- `NODE_TLS_REJECT_UNAUTHORIZED` (only when using Azure Cosmos DB emulator; set to 0 if you have issues with the self-signed certificate from the emulator)
 
 Once configured, simply run:
 ```

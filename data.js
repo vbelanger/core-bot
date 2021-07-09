@@ -19,6 +19,16 @@ const cacheTtl = 2 * 60 * 60;
 const QUOTES_KEY = 'quotes';
 const TRIGGERS_KEY = 'triggers';
 
+const createDatabase = async () => {
+  await createContainer(databaseId, 'quotes');
+  await createContainer(databaseId, 'triggers');
+};
+
+const createContainer = async (databaseId, containerId) => {
+  const { database: db } = await client.databases.createIfNotExists({ id: databaseId }, { offerThroughput: 1000 });
+  const { container } = await db.containers.createIfNotExists({ id: containerId, partitionKey: { kind: 'Hash', paths: ['/id'] } });
+};
+
 const getQuotes = async () => {
   return await get(QUOTES_KEY, 'SELECT c.id, c.message from c');
 };
@@ -73,7 +83,7 @@ const addAndCache = async (key, item, existing) => {
   }
 };
 
-const getNewId = (items) => (Math.max(...items.map((x) => Number.parseInt(x.id))) + 1).toString();
+const getNewId = (items) => items.length > 0 ? (Math.max(...items.map((x) => Number.parseInt(x.id))) + 1).toString() : "0";
 
 const deleteQuote = async (id) => {
   const existing = await getQuotes();
@@ -103,6 +113,7 @@ const deleteItem = async (key, id, existing) => {
 };
 
 module.exports = {
+  createDatabase,
   getQuotes,
   getTriggers,
   addQuote,
