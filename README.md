@@ -5,12 +5,12 @@ The corest of discord bots
 
 ### Quotes
 - `!quotes`: To get a dump of all available quotes, in JSON format.
-- `!quotes add <text>`: To add a new quote to the bot. You can enclose the text double-quotes if you prefer, but it is not necessary. This command will return the quote ID.
+- `!quotes add <text>`: To add a new quote to the bot. You can enclose the input in double quotes if you prefer, but it is not necessary. This command will return the quote ID.
 - `!quotes remove <id>`: To remove an existing quote from the bot.
 
 ### Triggers
 - `!triggers`: To get a dump of all current trigger words, in JSON format.
-- `!triggers add <text>`: To add a new triger word to the bot. You can enclose the text double-quotes if you prefer, but it is not necessary. This command will return the trigger ID.
+- `!triggers add <text>`: To add a new triger word to the bot. You can enclose the input in double quotes if you prefer, but it is not necessary. This command will return the trigger ID.
 - `!triggers remove <id>`: To remove an existing trigger from the bot.
 
 ## Development
