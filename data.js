@@ -20,13 +20,13 @@ const QUOTES_KEY = 'quotes';
 const TRIGGERS_KEY = 'triggers';
 
 const createDatabase = async () => {
-  await createContainer(databaseId, 'quotes');
-  await createContainer(databaseId, 'triggers');
+  await createContainer('quotes');
+  await createContainer('triggers');
 };
 
-const createContainer = async (databaseId, containerId) => {
-  const { database: db } = await client.databases.createIfNotExists({ id: databaseId }, { offerThroughput: 1000 });
-  const { container } = await db.containers.createIfNotExists({ id: containerId, partitionKey: { kind: 'Hash', paths: ['/id'] } });
+const createContainer = async (containerId) => {
+  const res = await client.databases.createIfNotExists({ id: databaseId }, { offerThroughput: 1000 });
+  await res.database.containers.createIfNotExists({ id: containerId, partitionKey: { kind: 'Hash', paths: ['/id'] } });
 };
 
 const getQuotes = async () => {
@@ -92,8 +92,6 @@ const deleteQuote = async (id) => {
 
 const deleteTrigger = async (id) => {
   const existing = await getTriggers();
-  console.log(existing);
-  console.log(id);
   return await deleteItem(TRIGGERS_KEY, id, existing);
 };
 
