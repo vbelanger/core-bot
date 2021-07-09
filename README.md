@@ -1,5 +1,5 @@
 # core-bot
-The corest of discord bots
+The corest of Discord bots
 
 ## Commands
 
