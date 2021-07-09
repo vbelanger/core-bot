@@ -1,121 +1,112 @@
+const CosmosClient = require('@azure/cosmos').CosmosClient;
+const NodeCache = require('node-cache');
+
+const config = {
+  endpoint: process.env.COSMOS_ENDPOINT,
+  key: process.env.COSMOS_KEY,
+  databaseId: 'corebot',
+};
+
+const { endpoint, key, databaseId } = config;
+
+const client = new CosmosClient({ endpoint, key });
+const database = client.database(databaseId);
+
+const cache = new NodeCache();
+
+const cacheTtl = 2 * 60 * 60;
+
+const QUOTES_KEY = 'quotes';
+const TRIGGERS_KEY = 'triggers';
+
+const getQuotes = async () => {
+  return await get(QUOTES_KEY, 'SELECT c.id, c.message from c');
+};
+
+const getTriggers = async () => {
+  return await get(TRIGGERS_KEY, 'SELECT c.id, c.word from c');
+};
+
+const get = async (key, query) => {
+  let data = cache.get(key);
+  try {
+    if (data == undefined) {
+      const q = { query };
+
+      const { resources: items } = await database.container(key).items.query(q).fetchAll();
+      cache.set(key, items, cacheTtl);
+      data = items;
+    }
+  } catch (e) {
+    console.error(e);
+  }
+  return data || [];
+};
+
+const addQuote = async (quote) => {
+  const existing = await getQuotes();
+  const item = {
+    id: getNewId(existing),
+    message: quote,
+  };
+
+  return await addAndCache(QUOTES_KEY, item, existing);
+};
+
+const addTrigger = async (trigger) => {
+  const existing = await getTriggers();
+  const item = {
+    id: getNewId(existing),
+    word: trigger,
+  };
+
+  return await addAndCache(TRIGGERS_KEY, item, existing);
+};
+
+const addAndCache = async (key, item, existing) => {
+  try {
+    await database.container(key).items.create(item);
+    cache.set(key, existing.concat(item), cacheTtl);
+    return item.id;
+  } catch (e) {
+    console.error(e);
+  }
+};
+
+const getNewId = (items) => (Math.max(...items.map((x) => Number.parseInt(x.id))) + 1).toString();
+
+const deleteQuote = async (id) => {
+  const existing = await getQuotes();
+  return await deleteItem(QUOTES_KEY, id, existing);
+};
+
+const deleteTrigger = async (id) => {
+  const existing = await getTriggers();
+  console.log(existing);
+  console.log(id);
+  return await deleteItem(TRIGGERS_KEY, id, existing);
+};
+
+const deleteItem = async (key, id, existing) => {
+  try {
+    await database.container(key).item(id.toString(), id.toString()).delete();
+    cache.set(
+      key,
+      existing.filter((x) => x.id !== id),
+      cacheTtl
+    );
+    return id;
+  } catch (e) {
+    console.error(e);
+    return null;
+  }
+};
+
 module.exports = {
-  trigger:
-    /enfant|femme|core|steph|stéph|docker|sre|raymont|garderie|gsoft|knox|employé #1|nexus|dine|svelte|blazor|charles|aurait aimé ça|aime ça|cold call|dole|ff14|ff 14/,
-  messages: [
-    "Sorry gang! Je peux pas aujourd'hui, je m'occupe des enfants! Amusez-vous bien!!! :heart:",
-    'Je ne peux pas ici, je dine avec ma femme',
-    "Pas sûr que je vais me pointer demain si ça sent, je suis sensible à ce genre d'odeur la...ce serait pe + la semaine prochaine",
-    "J'ai un petit pincement au coeur car j'ai pas mal été \"l'architecte de solution par la bande et par proxy\" pendant quelques années lol mais bonne chances pour tes futurs défis! :heart:",
-    'Je les connais pas eux, mais je suis willing de les connaitre!',
-    "Je trippe sur plein d'affaires moi aussi, on va bien s'entendre je crois!",
-    "Désolé, je ne peux pas y être : je dois préparer et aller chercher mes enfants aujourd'hui, et c'est à 16h que ça se passe. Bienvenue chez toi, tu vas aimer l'activité :heart:",
-    "Moi j'ai pas de setup de même, j'ai juste des poids libres jusqu'à 50 lbs",
-    "Joyeux Nexusversaire!! Toé j'ai hâte de te voir en vrai! :slight_smile: (pis les autres aussi la!! Soyez pas jaloux :slight_smile: )",
-    "Pour ceux qui suivent l'actualité, un de mes amis est passé a la télé hier, la tornade a fait des dégats sur son terrain (et lui il est saie). P.S. Nous on va bien. tout est ok (la tornade a passé proche de chez moi mais aucun dégat)",
-    'Avant que vous nous posiez la question nous allons tous bien. La tornade a passé à quelques kilomètres de chez nous.',
-    "On peut t'aider avec ça!! Pu besoin de SQL Server local!",
-    "Perf. Mais sache que dans SRE on a fait du Docker pour conteneuriser votre env de dev pu besoin d'Avoir le sqlpackage.exe etc",
-    "Ok! Cest toi qui le sait! Anyway vous pouvez travailler avec le docker ou sans mais pour un dev vanille (genre Antoine Brisebois-Roy) ça l'accélère",
-    "Je joue pas à des shooters, sorry. J'ai moins de réflexes qu'avant (quoique je suis quand même pas pire à FFXlV et ça demande du bon réflexe quand même dans les raid)",
-    "Ici je compte venir à partir de Juillet, fort probablement 1 journée/semaine. J'ai hâte de vous revoir! :heart:",
-    "Bienvenue les boys !! Je reach out tout de suite, je suis seul avec les enfants aujourd'hui, il y a des chances que je ne puisse pas participer à l'activité",
-    'Je suis avec les enfants là',
-    'À la garderie... pour la dernière fois en 2 semaines lol... A+!',
-    'Mais ma femme travaille alors si les enfants ne dorment pas tout de suite ça se peut que je me connecte plus tard! Je vous tiendrai au courant ce soir',
-    'Mardi, ma femme travaille à 12h. Mais je peux me pointer au bureau si absolument nécessaire (si il y a un fuck de garderie je vais devoir partir par contre)',
-    "Ma femme a mal compris que je voulais travailler toute la journée ajd... j'ai dû dealer avec elle, je travaille jusqu'à midi, et je me reconnecte ce soir",
-    "Hey, qu'est-ce qui arrive avec St-Hubert finalement? J'ai pe manqué un mémo!! Ce serait cool que l'équipe de dev fasse des poule requests!! Badum tsssss (joke copyright Ives Levi Diniz Rocha) :slight_smile:",
-    "Merci pour les infos et le formulaire! :heart: Aussi merci d'utiliser le mot distanciation physique et non distanciation sociale :heart:",
-    "J'ai un mac mais c'est + ma femme qui s'en sert... sorry moi non plus je peux pas t'aider",
-    'Merci pour ces 4 ans de confiance (souviens-toi, au début tu ignorais le contexte totalement). Cela veut donc dire que dans les premiers embauchés, je serai le seul qui reste. Je garde le fort!',
-    "J'ai finalement manqué tout ça... c'était la semaine de la gastro à la maison..j'ai manqué quoi? Qqn peut faire un recap?",
-    "Bon weekend Nexus. Je t'aime :heart: Ici jardinage et piscine et....relaxer",
-    'Moi non plus je ne veux pas contribuer tant à ce débat, mais je vais dire une chose: la violence engendre la violence. Peu importe si tu tire des roquettes de manière legit ou pas, ça reste de la violence. N.B. je ne prend pas position publiquement ni contre la Palestine ni contre Israël.',
-    "Je suis d'accord. En discuter c'est le meilleur moyen de sensibiliser. On pourrait aussi s'afficher publiquement comme entreprise ouverte à ce sujet.",
-    "J'aimerais juste dire que j'adore l'idée et je suis pour à 100%!!! :heart:",
-    "Experience personnelle ici : moi et ma femme on a regardé la dernière saison de l'amour est dans le pré, et la plus belle histoire d'amour de la saison a été les 2 hommes qui sont tombé en amour et qui l'ont avoué a la télé. C'est le moment dans toute l'émission qui m'a ému le +. Pourquoi j'en parle? Parce que l'amour est universel et ne se limite pas à l'amour homme femme.",
-    "Pour les voyages, je suis d'accord on n'est pas sortis du bois. Mettons que tu veux pas aller en Inde . Ma femme est moi on adore voyager, alors ça nous manque beaucoup.",
-    'Hey est-ce que st-hubert a vu notre photo de groupe en train de manger le poulet?',
-    'On a tu encore le droit de dire "ca va bien aller"? :slight_smile: Parce que j\'ai vraiment envie de le dire ces jours-ci',
-    'Salut! Tu vas nous manquer. Bon succès pour la suite et on garde contact, et pe jouer à FF14 !!',
-    'Qui va à Microsoft Build finalement? Moi je me suis registered!',
-    "On n'aura pas eu la chance de collaborer sur beaucoup de trucs, tu es un collègue vraiment nice, très professionnel, et une bonne personne. Tu vas nous manquer!!! Bon succès dans tes futurs défis!!! Reviens nous voir quand tu  veux!!",
-    "C'est des chiffres de chest press ça?",
-    "Je me souviens que Nexus avait genre 3 jours d'existence et qu'on faisait un meeting dans le bureau de Ray-Mont, Charles, moi et eux... et Mathieu Roy qui n'était pas encore engagé officiellement lol. Des souvenirs.",
-    '#Greg-Day! Mettez du Greg Noel dans les Sonos!!! Oh wait je suis pas au bureau lol',
-    "Sérieux c'est votre choix de prendre le vaccin ou pas, et respectons nous tous dans ce choix. D'ailleurs je n'embarquerai pas dans un débat ici. Vous avez tous vos raisons de vouloir le prendre ou pas. Par contre, ceux qui aiment la salade de chou traditionnelle.....",
-    'Pis la je vais ajouter 2 mots qui causent une discussion : PAS GAME!',
-    'Je vais garder de bons souvenirs de nos débuts chez Nexus avec Charles, et de ton dévouement pour Nexus depuis le jour 1, tu as mis ton coeur Ia-dedans litéralement!! Vous allez en vendre en tabarnac des pillules :wink: Lâche pas les bitcoin lol',
-    "Moi j'ai 220 heures sur Final Fantasy 14 depuis Novembre 2020 lol. Those MMOs hahaha",
-    'Tu as oublié les meeting au Knox avec moi Greg PA et Charles au tout début!!!',
-    'Hey!!!! :heart: :heart: :heart: Final Fantasssssyyyyyyyy!!!!!',
-    'LOL!!!!!!',
-    'Une biere avec charles. Pis tout le monde hahaha',
-    "Merci tout le monde!! Beaucoup d'amour mis la-dedans j'aime ça! J'vous aimes!! :heart: (pis j'ai de l'alcool dans le sang lol)",
-    'Fake news lol. STOP THE COUNT (bad pun) :smile:',
-    "J'ADORE!!!",
-    'Tjrs avec toi Charles et avec Nexus!! :heart:',
-    "Salut gang!! Désolé pour mon retard j'étais pris dans le trafic de Mascouche (oui ça existe lol). :heart:",
-    "Chaque année, je suis heureux et fier de célébrer Nexus et mon anniversaire de service en même temps. Démarrer une entreprise, c'est tout un défi et beaucoup de travail, et une opportunité extrêmement rare. Je suis toujours fier de faire partie de l'aventure malgré toutes les embûches et les ajustements qui se sont produits depuis le jour 1. Je suis toujours disponible pour m'impliquer et donner mon grain de sel / participer à ma manière aux réflexions qui font évoluer l'organisation. Je m'ennuie de vous et j'ai hâte de tous vous revoir (et voir pour la première fois tout un tas de gens qui ont été onboardés en remote). Bien hâte de popper le champagne avec vous tantôt!!! Cheers les boys/girls! Je vous aimes",
-    'Heyyyyy!! Je suis en vacances mais je vous vois tantôt!!!! À tantôt ! :heart:',
-    "J'ai tellement bûché pour trouver la source de mon problème que c'était incontournable de le partager quand j'ai trouvé pourquoi :slight_smile:",
-    "C'est exactement le mode de fonctionnement que je souhaitais (et aussi celui que j'avais adopté pré-pandémie). J'ai hâte de connaître la suite! :slight_smile:",
-    "Je trouve l'exercice intéressant. Pour les projets existants dans le rouge, on peut maintenant avoir une idée de ce qui pourrait être fait (et ce qui est sous notre contrôle) pour s'approcher du jaune du moins. Good job! :heart:",
-    '"Notre cash flow me fait penser au Bitcoin". :smile: Man que j\'adore ton humour!! Pour pas dire "TOÉ JT\'AIME" tsé',
-    "Mais qu'est ce que tu essaie de réfuter de mon côté?? Je te sens aggressif, j'essayais juste de comprendre l'opinion d'Alex et de la verbaliser. Je me sens attaqué pour rien lol. Lis plutôt mon PREMIER REPLY",
-    "Il y a une fin a tout ça, patience. Les gouvernements attendent une couverture vaccinale maximale pour minimiser les risques de ce que j'ai compris. Je suis positif pour le Québec par contre, je crois qu'on va avoir une belle surprise. Pour les voyages, je suis d'accord on n'est pas sortis du bois. Mettons que tu veux pas aller en Inde :yum:. Ma femme et moi on adore voyager, alors ça nous manque beaucoup. Mais on va attendre. En passant c'est écrit que l'été tu peux visiter famille et amis dehors en fait, c'est un peu comme l'été passé, on avait le droit-ish, avec 10 personnes ou qqch du genre. Tant qu'on ne revient pas à la situation de Mars 2020 et qu'on progresse vers une sortie de cris moi ça me va :wink:",
-    'The "A" Team',
-    "C'est TOÉ le stagiaire!!",
-    ":cry: On n'aura pas eu la chance de collaborer sur beaucoup de trucs, tu es une collègue vraiment nice, très professionnelle, et une bonne personne. Tu vas nous manquer!!! Bon succès dans tes futurs défis!!! Reviens nous voir quand tu veux!! :heart:",
-    "Man t'es bien équippé !!!",
-    "J'apprends sur Docker ici, mais ma recherche est pour le bénéfice de Nexus au complet, pas sur un projet spécifique",
-    'Big love! Je vais toujours me souvenir des débuts chez Nexus ensemble, on garde contact! :smile: Bonne chnace dans tes futurs défis!',
-    'Ces jokes aussi sont plus populaires que les miennes même si le fond de la joke est la même lol... tout est dans le wording',
-    'Faut croire que je suis pas un confident officiel Nexus lol. Un jour ma etre a jour! :smile:',
-    'Engager François Pérusse pour nous faire un jingle Nexus officiel <3',
-    'Nous avons un Nexus Docker container repository sous Azure!',
-    'On appelle ça un quickie. Lol oups not 2021 mon commentaire :yum:',
-    'Oh toi!!! :heart: :heart: :heart: Final Fantasssssyyyyy!!!!',
-    'Ici on adore notre microbrasserie du coin (terrebonnienne) : Microbrasserie le ruisseau noir',
-    "Merci Nexus!! Je n'en dit pas + et a vendredi :heart: :heart: :heart:",
-    'Je suis une légende et je suis pas au courant? :joy:',
-    "Es-tu en train de dire que je suis le SEUL qui t'a écrit et que je suis un SPAM?",
-    "J'ai vraiment hâte de tous vous revoir. Mais je vais laisser la place à d'autres pour revenir (je suis bien installé et mentalement tout va bien), alors on se voit plus tard :heart:",
-    "J'aime cette ébauche. Je crois qu'on s'en va vers la bonne direction",
-    "Bon succès dans tes nouveaux défis :heart:. Tu vas vraiment me manquer, dommage qu'on n'ait pas eu le temps de bosser sur un projet ensemble. On garde contact!",
-    "Quand même drôle que je lis sur Bicep la journée et que je suis racké des bras parce que j'ai vraiment fais beaucoup de Curl dans mon entraînement d'hier :joy:",
-    "Ça doit pas être facile dealer avec ça. Si tu as envie d'en parler, l'équipe Stéphane est la",
-    'Il y a aussi Docker dans mon pipeline bien entendu',
-    "Oh c'est aujourd'hui? Désolé je suis seul avec mes kids je ne peux pas join. Bonne continuation",
-    "Mes 2 filles, elles sont super bonnes dans le bain! Oh on parle d'alcool? :wink:",
-    'Ah. Je ne peux pas y assister (daddy duty)',
-    'looks like enlever db_owner en prod ça pete toutte.',
-    'plus on grossit vite, plus il y a un risque de diluer le core (histoire vécue)',
-    "J'aimerais bien mais tout ce qui se passe entre 17h et 20h c'est toujours impossible que je join, c'est l'heure ou je dois gérer les enfants du souper au dodo",
-    'Attends, faut que je check avec ma femme pour Mardi prochain. Ca me fait 2 game la semaine prochaine, pas sûr que ça passe au conseil :yum:',
-    "man t'es bin dole",
-    "Kappa? c'est quoi ça?",
-    '#shadow-it',
-    "Attention avec any headers et any credentials, c'est un trou de sécurité. Soit any header, soit with Credential, mais pas les 2 en même temps. Je suggère de filtrer les headers. Je retourne en congé! A++",
-    "Dotnet core est cross platform. On devrait permettre a n'importe quel candidat d'utiliser Windows, Mac OS, ou Linux a son choix. C'est fair pour tout le monde! Je salue l'initiative.",
-    'Félicitations à tous ceux qui donnent du feedback via Amélio! :smile: #passif-aggressif',
-    "On va en boire en tabarnac du jus d'orange si on a le contrat! :heart:",
-    "Hey moi aussi j'écoute pas mal de tout mon cher",
-    "J'ai déjà vu ça ça cache une erreur sousjacente dans l'API, ça a dèjà fait ça dans un projet avec la stack G",
-    'no way que je hover back and forth entre teams et discord lol',
-    'Bon 1 an keyboard warrior!',
-    'En 2022, ça me donne du temps pour perdre du poids et etre + en forme :smile:',
-    "Ah ok! Je n'ai aucune insatisfaction personnellement mais ça va me faire plaisir de contribuer!",
-    "J'aimerais ajouter un petit commentaire ici concernant les nouvelles / anciennes stack. Ceci est une réflexion de mes 20, bientôt 21 années d'expérience dans le domaine",
-    "Moi j'ai réagi au commentaire qui parlait de la stack de G, qui, même si elle n'est pas au goût du jour, n'est pas si pire à travailler avec. Ça ne veut pas dire que la stack est une \"estie de marde\" juste parce que c'est un stack custom qui date un peu! Je comprends qu'il y a des alternatives plus intéressantes en 2020, mais gardez en tête qu'en 2013, Angular 10 n'existait pas vraiment, àa répondait a un besoin à l'époque. On est comme des mécaniciens. Des fois on a des BMW à réparer, des fois c'est des Tercel. Ça fait partie de la game!",
-    "Expérience personnelle: essayez d'écrire du japonais sur un touch screen, c'est fucking though!!",
-    'Merci pour la présentation les boys.e.s',
-    'On nexauce vos voeux de nouveaux projets!',
-    "J'adore coder dans mon day to day et je vous aime tous!! Mais je ne code pas le wek-end pour le fun (ou très peu)",
-    'Oh boy! On fait du CBD? Cowboy-Based-Deployment ?',
-    "Ah! J'étais sur que Dapr était Dapper mais que tu avais fait un typo",
-    "Ah c'est COLL call le terme?? Je croyais que c'était COLD call",
-    "Aweille dont!!! Continue de nous donner des bonnes nouvelles!!! :heart:",
-    "C'est cool en + un projet qui va débuter dans la semaine internationale des chats (a la miaou). J'adore!!"
-  ],
+  getQuotes,
+  getTriggers,
+  addQuote,
+  addTrigger,
+  deleteQuote,
+  deleteTrigger,
 };
