@@ -1,5 +1,5 @@
 # core-bot
-The corest of discord bots
+The corest of Discord bots
 
 ## Commands
 
@@ -10,7 +10,7 @@ The corest of discord bots
 
 ### Triggers
 - `!triggers`: To get a dump of all current trigger words, in JSON format.
-- `!triggers add <text>`: To add a new triger word to the bot. You can enclose the input in double quotes if you prefer, but it is not necessary. This command will return the trigger ID.
+- `!triggers add <text>`: To add a new trigger word to the bot. You can enclose the input in double quotes if you prefer, but it is not necessary. This command will return the trigger ID.
 - `!triggers remove <id>`: To remove an existing trigger from the bot.
 
 ## Development
@@ -19,7 +19,7 @@ The corest of discord bots
 - NodeJS
 - Active Discord application with bot user capability, go [here](https://discord.com/developers/applications) to register one
 - Either an Azure Cosmos DB account, or the Azure Cosmos DB emulator
-- Any Discord server to invite to bot to, for testing purposes
+- Any Discord server to invite the bot to, for testing purposes
 
 ### Database
 
