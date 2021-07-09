@@ -1,21 +1,15 @@
 const eris = require('eris');
 const app = require('express')();
 const dataSource = require('./data');
-const http = require('https');
 const commands = require('./commands');
 
 const port = process.env.PORT || 3000;
-const url = process.env.BOT_URL;
 
 app.use(function (_, res) {
   res.send();
 });
 
 app.listen(port, () => {});
-
-setInterval(() => {
-  if (url) http.request(url).end();
-}, 3 * 60 * 1000);
 
 const bot = new eris.CommandClient(process.env.BOT_TOKEN, {}, { prefix: '!' });
 commands.register(bot, dataSource);
