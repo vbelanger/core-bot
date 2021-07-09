@@ -26,8 +26,9 @@ const isOwnMessage = (msg) => msg.author.id === bot.user.id;
 const wasMentioned = (msg) => msg.mentions.find((user) => user.id === bot.user.id);
 const isInCoreChannel = (msg) => msg.channel.name === 'core-player-quotes';
 const isImagePost = (msg) => msg.attachments.length > 0;
-const textContainsTrigger = (msg, data) => msg.content.toLowerCase().match(new RegExp(data.triggers.map((t) => t.word).join('|')));
+const textContainsTrigger = (msg, data) => msg.content.toLowerCase().match(new RegExp(data.triggers.map((t) => escapeRegex(t.word)).join('|')));
 const getRandomMessage = (data) => data.quotes[Math.floor(Math.random() * data.quotes.length)].message;
+const escapeRegex = (text) => text.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
 
 const getData = async () => {
   const quotes = await dataSource.getQuotes();
