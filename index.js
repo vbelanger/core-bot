@@ -25,6 +25,7 @@ const isImagePost = (msg) => msg.attachments.length > 0;
 const textContainsTrigger = (msg, data) => data.triggers.length > 0 ? msg.content.toLowerCase().match(new RegExp(data.triggers.map((t) => escapeRegex(t.word)).join('|'))) : false;
 const getRandomMessage = (data) => data.quotes.length > 0 ? data.quotes[Math.floor(Math.random() * data.quotes.length)].message : null;
 const escapeRegex = (text) => text.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+const luisId = '536588367916433428'; //'luis.kd#6324' 
 
 const getData = async () => {
   const quotes = await dataSource.getQuotes();
@@ -41,7 +42,12 @@ bot.on('messageCreate', async (msg) => {
       if (message)
         await msg.channel.createMessage(message);
     }
-    if (shouldReact(msg, data)) await bot.addMessageReaction(msg.channel.id, msg.id, '❤️');
+    if (shouldReact(msg, data)) {
+      msg.author.id == luisId
+      ? await bot.addMessageReaction(msg.channel.id, msg.id, 'AngrySteph:805818730134896671')
+      : await bot.addMessageReaction(msg.channel.id, msg.id, '❤️')
+
+    }
   } catch (e) {
     console.error(e);
   }
