@@ -17,7 +17,7 @@ commands.register(bot, dataSource);
 dataSource.createDatabase().then(() => {});
 
 const shouldReply = (msg, data) => !isOwnMessage(msg) && (wasMentioned(msg) || (isInCoreChannel(msg) && (isImagePost(msg) || textContainsTrigger(msg, data))));
-const shouldReact = (msg, data) => !isOwnMessage(msg) && (wasMentioned(msg) || textContainsNumber(msg, data));
+const shouldReact = (msg, data) => !isOwnMessage(msg) && (wasMentioned(msg) || textContainsTrigger(msg, data));
 const isNumber = (msg, data) => !isOwnMessage(msg) && textContainsNumber(msg, data);
 const isOwnMessage = (msg) => msg.author.id === bot.user.id;
 const wasMentioned = (msg) => msg.mentions.find((user) => user.id === bot.user.id);
