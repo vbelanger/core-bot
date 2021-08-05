@@ -45,7 +45,7 @@ bot.on('messageCreate', async (msg) => {
       if (message)
         await msg.channel.createMessage(message);
     }
-    if (isNumber(msg)) {
+    else if (isNumber(msg)) {
       const message = "C'est des chiffres de chest press ça?";
       await msg.channel.createMessage(message);
     }
