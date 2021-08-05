@@ -18,7 +18,7 @@ dataSource.createDatabase().then(() => {});
 
 const shouldReply = (msg, data) => !isOwnMessage(msg) && (wasMentioned(msg) || (isInCoreChannel(msg) && (isImagePost(msg) || textContainsTrigger(msg, data))));
 const shouldReact = (msg, data) => !isOwnMessage(msg) && (wasMentioned(msg) || textContainsTrigger(msg, data));
-const isNumber = (msg) => !isOwnMessage(msg) && textContainsNumber(msg);
+const isNumber = (msg) => !isOwnMessage(msg) && textContainsNumber(msg) && isInCoreChannel(msg);
 const isOwnMessage = (msg) => msg.author.id === bot.user.id;
 const wasMentioned = (msg) => msg.mentions.find((user) => user.id === bot.user.id);
 const isInCoreChannel = (msg) => msg.channel.name === 'core-player-quotes';
