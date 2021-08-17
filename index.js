@@ -23,11 +23,11 @@ const isOwnMessage = (msg) => msg.author.id === bot.user.id;
 const wasMentioned = (msg) => msg.mentions.find((user) => user.id === bot.user.id);
 const isInCoreChannel = (msg) => msg.channel.name === 'core-player-quotes';
 const isImagePost = (msg) => msg.attachments.length > 0;
-const textContainsTrigger = (msg, data) => data.triggers.length > 0 ? msg.content.toLowerCase().match(new RegExp(data.triggers.map((t) => escapeRegex(t.word)).join('|'))) : false;
+const textContainsTrigger = (msg, data) => data.triggers.length > 0 ? msg.content.toLowerCase().match(new RegExp(data.triggers.map((t) => `\\b${escapeRegex(t.word)}\\b`).join('|'))) : false;
 const textContainsNumber = (msg) => /\d/.test(msg.content);
 const getRandomMessage = (data) => data.quotes.length > 0 ? data.quotes[Math.floor(Math.random() * data.quotes.length)].message : null;
 const escapeRegex = (text) => text.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-const luisId = '536588367916433428'; //'luis.kd#6324' 
+const luisId = '536588367916433428'; //'luis.kd#6324'
 const isLuis = (msg) => msg.author.id == luisId;
 
 const getData = async () => {
