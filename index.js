@@ -5,6 +5,7 @@ const commands = require('./commands');
 const language = require('./language');
 
 const port = process.env.PORT || 3000;
+const luisId = '536588367916433428';
 
 app.use(function (_, res) {
   res.send();
@@ -29,9 +30,10 @@ const textContainsTrigger = (msg, data) =>
 const textContainsNumber = (msg) => /\d/.test(msg.content);
 const getRandomMessage = (data) => (data.quotes.length > 0 ? data.quotes[Math.floor(Math.random() * data.quotes.length)].message : null);
 const escapeRegex = (text) => text.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+const isLuis = (msg) => msg.author.id == luisId;
 const isNegativeMessage = async (msg) => {
   const sentiment = await language.getSentiment(msg.content);
-  return sentiment.score < 0 && sentiment.magnitude > 0.1;
+  return sentiment.score < 0 && sentiment.magnitude > 0.25;
 };
 
 const getData = async () => {
@@ -52,7 +54,7 @@ bot.on('messageCreate', async (msg) => {
       await msg.channel.createMessage(message);
     }
 
-    if (await isNegativeMessage(msg)) {
+    if (isLuis(msg) && (await isNegativeMessage(msg))) {
       await bot.addMessageReaction(msg.channel.id, msg.id, 'AngrySteph:805818730134896671');
     } else if (shouldReact(msg, data)) {
       await bot.addMessageReaction(msg.channel.id, msg.id, '❤️');
