@@ -19,6 +19,7 @@ The corest of Discord bots
 - NodeJS
 - Active Discord application with bot user capability, go [here](https://discord.com/developers/applications) to register one
 - Either an Azure Cosmos DB account, or the Azure Cosmos DB emulator
+- Active Google Cloud account (for natural language APIs)
 - Any Discord server to invite the bot to, for testing purposes
 
 ### Database
@@ -32,8 +33,9 @@ To debug the bot locally, you must set these environment variables:
 - `COSMOS_ENDPOINT`
 - `COSMOS_KEY`
 - `NODE_TLS_REJECT_UNAUTHORIZED` (only when using Azure Cosmos DB emulator; set to 0 if you have issues with the self-signed certificate from the emulator)
+- `GOOGLE_APPLICATION_CREDENTIALS` (must point to a local JSON file containing your service account key, more info here https://cloud.google.com/natural-language/docs/setup#auth)
 
-Once configured, simply run:
+Once configured, run:
 ```
 $ npm i
 $ npm start
